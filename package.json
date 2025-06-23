@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
-    "start": "node initdb.js && next start",
+    "start": "node render-init.js && next start",
     "lint": "next lint"
   },
   "dependencies": {

@@ -164,6 +164,9 @@ const dummyMeals = [
   },
 ];
 
+// Export dummyMeals for use in other scripts
+module.exports = { dummyMeals };
+
 db.prepare(`
    CREATE TABLE IF NOT EXISTS meals (
        id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -178,6 +181,14 @@ db.prepare(`
 `).run();
 
 async function initData() {
+  // Check if meals already exist
+  const existingMeals = db.prepare("SELECT COUNT(*) as count FROM meals").get();
+  
+  if (existingMeals.count > 0) {
+    console.log('Database already contains meals, skipping initialization');
+    return;
+  }
+
   const stmt = db.prepare(`
       INSERT INTO meals VALUES (
          null,
@@ -192,8 +203,19 @@ async function initData() {
    `);
 
   for (const meal of dummyMeals) {
-    stmt.run(meal);
+    try {
+      stmt.run(meal);
+      console.log(`Added meal: ${meal.title}`);
+    } catch (error) {
+      if (error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+        console.log(`Meal ${meal.title} already exists, skipping`);
+      } else {
+        console.error(`Error adding meal ${meal.title}:`, error);
+      }
+    }
   }
+  
+  console.log('Database initialization completed');
 }
 
 initData();
